@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Core color tokens - customize these for your brand */
+  --primary: 210 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 210 40% 8%;
+  --accent: 210 40% 90%;
+  --accent-foreground: 210 40% 8%;
+  
+  /* Semantic colors */
+  --background: 0 0% 100%;
+  --foreground: 210 40% 8%;
+  --card: 0 0% 100%;
+  --card-foreground: 210 40% 8%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 210 40% 8%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 210 40% 45%;
+  --border: 210 40% 90%;
+  --input: 210 40% 90%;
+  --ring: 210 100% 50%;
+  
+  /* Status colors */
+  --destructive: 0 85% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --success: 120 60% 45%;
+  --success-foreground: 0 0% 98%;
+  --warning: 45 90% 60%;
+  --warning-foreground: 0 0% 98%;
+  
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 210 40% 8%;
+  --foreground: 0 0% 95%;
+  --card: 210 40% 8%;
+  --card-foreground: 0 0% 95%;
+  --popover: 210 40% 8%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 210 100% 50%;
+  --primary-foreground: 210 40% 8%;
+  --secondary: 210 40% 15%;
+  --secondary-foreground: 0 0% 95%;
+  --muted: 210 40% 15%;
+  --muted-foreground: 210 40% 60%;
+  --accent: 210 40% 15%;
+  --accent-foreground: 0 0% 95%;
+  --destructive: 0 85% 60%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 210 40% 15%;
+  --input: 210 40% 15%;
+  --ring: 210 100% 50%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .status-badge-open {
+    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300;
+  }
+  
+  .status-badge-closed {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300;
+  }
+  
+  .condition-badge-novo {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300;
+  }
+  
+  .condition-badge-bom {
+    @apply bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300;
+  }
+  
+  .condition-badge-regular {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300;
+  }
+  
+  .condition-badge-ruim {
+    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300;
+  }
+}
