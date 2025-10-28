@@ -1,3 +1,4 @@
+import { RoleType } from "@prisma/client";
 import { z } from "zod";
 
 export const LoginSchema = z.object({
@@ -82,4 +83,26 @@ export const EquipmentAlterationSchema = z.object({
   equipment: z.string().min(2, "Equipamento é obrigatório"),
   serialNumber: z.array(z.string().min(1, "Número de série é obrigatório")),
   amount: z.string().min(1, "Quantidade é obrigatória"),
+});
+
+export const UserSchema = z.object({
+  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  email: z.string().email("Email inválido"),
+  password: z
+    .string()
+    .min(6, "Senha deve ter pelo menos 6 caracteres")
+    .optional(),
+  role: z.nativeEnum(RoleType),
+  phone: z
+    .string()
+    .min(10, "Telefone inválido")
+    .regex(/^\d+$/, "Telefone deve conter apenas números"),
+  rank: z.string().min(2, "Posto/Graduação é obrigatório"),
+  warName: z.string().min(2, "Nome de guerra é obrigatório"),
+  militaryOrganization: z.string().min(4, "Organização militar é obrigatória"),
+  document: z
+    .string()
+    .min(11, "CPF deve ter 11 dígitos")
+    .regex(/^\d+$/, "CPF deve conter apenas números"),
+  functionName: z.string().min(2, "Função é obrigatória"),
 });

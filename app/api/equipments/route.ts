@@ -43,6 +43,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = EquipmentSchema.parse(body);
 
+    const existingEquipment = await prisma.equipment.findFirst({
+      where: {
+        name: data.name,
+      },
+    });
+
+    if (existingEquipment) {
+      return NextResponse.json(
+        { error: "Um equipamento com este nome já existe" },
+        { status: 400 }
+      );
+    }
+
     const equipment = await prisma.equipment.create({
       data: {
         ...data,

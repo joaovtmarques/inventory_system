@@ -79,7 +79,7 @@ interface LoanWithRelations {
     name: string;
     rank?: string;
     warName?: string;
-    function: string;
+    functionName: string;
   };
   customer: {
     name: string;
@@ -109,7 +109,7 @@ export async function GET(
             name: true,
             rank: true,
             warName: true,
-            function: true,
+            functionName: true,
           },
         },
         customer: {
@@ -200,7 +200,7 @@ export async function GET(
       equipments: equipments,
       totalPrice: `R$ ${totalPrice.toFixed(2).replace(".", ",")}`,
       militaryOrganization: loan.customer?.militaryOrganization || "-",
-      function: loan.lender.function,
+      functionName: loan.lender.functionName,
       nrcautela: loan.orderNumber,
     });
 
@@ -214,13 +214,9 @@ export async function GET(
       tmpFolder,
       `loan-${loan.customer?.rank + "" + loan.customer?.warName}.docx`
     );
-    fs.writeFileSync(filePath, buffer);
 
-    const uint8Array = new Uint8Array(
-      buffer.buffer,
-      buffer.byteOffset,
-      buffer.byteLength
-    );
+    const uint8Array = new Uint8Array(buffer);
+    fs.writeFileSync(filePath, uint8Array);
 
     return new NextResponse(uint8Array, {
       status: 200,

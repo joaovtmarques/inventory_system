@@ -30,6 +30,7 @@ export default function DashboardPage() {
   const fetchStats = async () => {
     try {
       const response = await fetch("/api/stats");
+      console.log(stats);
       if (!response.ok) throw new Error("Erro ao buscar estatísticas");
 
       const data = await response.json();
@@ -93,10 +94,11 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {stats.totalValue.toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              })}
+              {stats.totalValue &&
+                stats.totalValue.toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                })}
             </div>
           </CardContent>
         </Card>

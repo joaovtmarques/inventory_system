@@ -47,7 +47,7 @@ model User {
   warName              String?
   militaryOrganization String?
   password             String
-  function             String?
+  functionName         String?
   role                 RoleType @default(COMMON)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt

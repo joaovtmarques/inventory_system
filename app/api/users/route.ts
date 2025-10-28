@@ -57,15 +57,15 @@ export async function POST(request: NextRequest) {
       role,
       phone,
       document,
+      functionName,
       rank,
       warName,
       militaryOrganization,
     } = body;
 
-    // Validação básica
     if (!name || !email || !password || !role) {
       return NextResponse.json(
-        { error: "Dados obrigatórios faltando" },
+        { error: "Os dados obrigatórios estão incompletos" },
         { status: 400 }
       );
     }
@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
         rank: rank || null,
         warName: warName || null,
         militaryOrganization: militaryOrganization || null,
+        functionName: functionName || null,
       },
       select: {
         id: true,
@@ -104,12 +105,13 @@ export async function POST(request: NextRequest) {
         warName: true,
         militaryOrganization: true,
         createdAt: true,
+        functionName: true,
       },
     });
 
     return NextResponse.json({ user });
   } catch (error) {
-    console.error("Registration error:", error);
+    console.error("Erro ao cadastrar usuário:", error);
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }

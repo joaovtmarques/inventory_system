@@ -37,6 +37,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = CategorySchema.parse(body);
 
+    const existingCategory = await prisma.category.findFirst({
+      where: {
+        name: data.name,
+      },
+    });
+
+    if (existingCategory) {
+      return NextResponse.json(
+        { error: "Uma categoria com este nome já existe" },
+        { status: 400 }
+      );
+    }
+
     const category = await prisma.category.create({
       data,
     });

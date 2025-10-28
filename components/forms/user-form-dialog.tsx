@@ -1,9 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -20,8 +17,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -29,29 +24,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { UserSchema } from "@/lib/validations";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { RoleType } from "@prisma/client";
-
-const UserSchema = z.object({
-  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
-  password: z
-    .string()
-    .min(6, "Senha deve ter pelo menos 6 caracteres")
-    .optional(),
-  role: z.nativeEnum(RoleType),
-  phone: z.string().optional(),
-  document: z.string().optional(),
-  rank: z.string().optional(),
-  warName: z.string().optional(),
-  militaryOrganization: z.string().optional(),
-});
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 type UserFormData = z.infer<typeof UserSchema>;
 
 interface Props {
   children: React.ReactNode;
   onSuccess?: () => void;
-  user?: any; // Para edição
+  user?: any;
 }
 
 const ranks = [
@@ -86,6 +72,7 @@ export function UserFormDialog({ children, onSuccess, user }: Props) {
       rank: user?.rank || "",
       warName: user?.warName || "",
       militaryOrganization: user?.militaryOrganization || "",
+      functionName: user?.functionName || "",
     },
   });
 
@@ -95,7 +82,6 @@ export function UserFormDialog({ children, onSuccess, user }: Props) {
       const url = user ? `/api/users/${user.id}` : "/api/users";
       const method = user ? "PATCH" : "POST";
 
-      // Se é edição e senha está vazia, remover do payload
       if (user && !data.password) {
         const { password, ...dataWithoutPassword } = data;
         data = dataWithoutPassword as UserFormData;
@@ -263,6 +249,20 @@ export function UserFormDialog({ children, onSuccess, user }: Props) {
                   <FormLabel>Organização Militar</FormLabel>
                   <FormControl>
                     <Input placeholder="Organização Militar" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="functionName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Função Militar</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Função Militar" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

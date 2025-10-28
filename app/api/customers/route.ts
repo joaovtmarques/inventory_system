@@ -12,7 +12,7 @@ export async function GET() {
 
     return NextResponse.json(customers);
   } catch (error) {
-    console.error("Error fetching customers:", error);
+    console.error("Erro ao buscar clientes:", error);
     return NextResponse.json(
       { error: "Erro ao buscar clientes" },
       { status: 500 }
@@ -31,13 +31,26 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = CustomerSchema.parse(body);
 
+    const existingCustomer = await prisma.customer.findFirst({
+      where: {
+        document: data.document,
+      },
+    });
+
+    if (existingCustomer) {
+      return NextResponse.json(
+        { error: "Um cliente com estes dados já existe" },
+        { status: 400 }
+      );
+    }
+
     const customer = await prisma.customer.create({
       data,
     });
 
     return NextResponse.json(customer);
   } catch (error) {
-    console.error("Error creating customer:", error);
+    console.error("Erro ao criar cliente:", error);
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : "Erro ao criar cliente",

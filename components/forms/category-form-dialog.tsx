@@ -18,18 +18,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { CategorySchema } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-const categoryFormSchema = z.object({
-  name: z.string().min(4, "O nome da categoria é obrigatório"),
-  description: z.string().optional(),
-});
-
-type CategoryFormData = z.infer<typeof categoryFormSchema>;
+type CategoryFormData = z.infer<typeof CategorySchema>;
 
 interface Props {
   children: React.ReactNode;
@@ -41,7 +37,7 @@ export function CategoryFormDialog({ children, onSuccess }: Props) {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<CategoryFormData>({
-    resolver: zodResolver(categoryFormSchema),
+    resolver: zodResolver(CategorySchema),
     defaultValues: {
       name: "",
       description: "",

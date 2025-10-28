@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = SerialNumberSchema.parse(body);
 
-    // Garantindo que status e condition sejam válidos para o Prisma
     const validStatuses = [
       "EM_ESTOQUE",
       "CAUTELADO",
@@ -46,6 +45,19 @@ export async function POST(request: NextRequest) {
 
     if (!validConditions.includes(data.condition)) {
       data.condition = "BOM";
+    }
+
+    const existingSerialNumber = await prisma.serialNumber.findFirst({
+      where: {
+        number: data.number,
+      },
+    });
+
+    if (existingSerialNumber) {
+      return NextResponse.json(
+        { error: "Número de série já cadastrado" },
+        { status: 400 }
+      );
     }
 
     const serialNumber = await prisma.serialNumber.create({

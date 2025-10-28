@@ -2,7 +2,7 @@ import { authOptions } from "@/lib/auth";
 import { isAdmin } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { getRankAbbreviation } from "@/lib/rank";
-import { ItemCondition, SerialStatus } from "@prisma/client";
+import { ItemCondition } from "@prisma/client";
 import Docxtemplater from "docxtemplater";
 import fs from "fs";
 import { getServerSession } from "next-auth";
@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    // Buscar todos os equipamentos com seus números de série e empréstimos
     const equipments = await prisma.equipment.findMany({
       include: {
         category: {
@@ -43,10 +42,28 @@ export async function GET(request: NextRequest) {
               },
               where: {
                 loan: {
-                  status: "ABERTO", // Apenas cautelas abertas
+                  status: "ABERTO",
+                  equipments: {
+                    every: {
+                      equipment: {
+                        category: {
+                          name: {
+                            notIn: ["Intendência"],
+                          },
+                        },
+                      },
+                    },
+                  },
                 },
               },
             },
+          },
+        },
+      },
+      where: {
+        category: {
+          name: {
+            notIn: ["Intendência"],
           },
         },
       },
@@ -55,12 +72,11 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Preparar dados para a primeira tabela (equipamentos cautelados)
     const equipmentsOnLoan = equipments.flatMap((equipment) =>
       equipment.serialNumbers
         .filter((serial) => serial.status === "CAUTELADO")
         .map((serial) => {
-          const activeLoan = serial.loans[0]; // Pega o empréstimo ativo
+          const activeLoan = serial.loans[0];
           return {
             material: equipment.name,
             numero_de: serial.number,
@@ -174,14 +190,8 @@ export async function GET(request: NextRequest) {
       tmpFolder,
       `situacao-equipamentos-${new Date().getTime()}.docx`
     );
-    fs.writeFileSync(filePath, buffer);
-
-    // Retornar o arquivo
-    const uint8Array = new Uint8Array(
-      buffer.buffer,
-      buffer.byteOffset,
-      buffer.byteLength
-    );
+    const uint8Array = new Uint8Array(buffer);
+    fs.writeFileSync(filePath, uint8Array);
 
     return new NextResponse(uint8Array, {
       status: 200,
