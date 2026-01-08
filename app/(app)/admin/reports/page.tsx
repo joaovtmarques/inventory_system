@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,23 +12,39 @@ import { redirect } from "next/navigation";
 export default function ReportsPage() {
   const { data: session } = useSession();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   if (!session?.user || !canGenerateReports(session.user.role)) {
     redirect("/app/dashboard");
   }
 
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((res) => res.json())
+      .then((data) => setCategories(data));
+  }, []);
+
   const handleDownload = async () => {
     try {
-      const response = await fetch("/api/ready/download");
+      const params = new URLSearchParams();
+
+      if (selectedCategories.length > 0) {
+        selectedCategories.forEach((categoryId) => {
+          params.append("categories", categoryId);
+        });
+      }
+
+      const response = await fetch(`/api/ready/download?${params.toString()}`);
       if (!response.ok) throw new Error("Erro ao gerar relatório");
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
 
-      // Gerar nome do arquivo com data atual
       const currentDate = new Date()
         .toLocaleDateString("pt-BR")
         .replace(/\//g, "-");
+
       const fileName = `situacao-equipamentos-${currentDate}.docx`;
 
       const link = document.createElement("a");
@@ -46,41 +62,6 @@ export default function ReportsPage() {
     }
   };
 
-  const handleGenerateReport = async () => {
-    setIsGenerating(true);
-    try {
-      const response = await fetch("/api/reports/daily", {
-        method: "POST",
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        toast.success("Relatório gerado com sucesso!");
-
-        // Fazer download automático
-        if (data.downloadUrl) {
-          const downloadResponse = await fetch(data.downloadUrl);
-          const blob = await downloadResponse.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = data.filename;
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
-        }
-      } else {
-        const error = await response.json();
-        toast.error(error.error || "Erro ao gerar relatório");
-      }
-    } catch (error) {
-      toast.error("Erro ao gerar relatório");
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Relatórios</h1>
@@ -93,11 +74,48 @@ export default function ReportsPage() {
               Gerar Pronto
             </CardTitle>
           </CardHeader>
+
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
               Gera o relatório diário com a situação atual dos equipamentos em
               cautela e estoque geral.
             </p>
+
+            <div className="space-y-2 mb-4">
+              <p className="text-sm font-medium">
+                Selecione as categorias que devem sair no pronto
+              </p>
+
+              {/* 🔽 CONTAINER COM SCROLL */}
+              <div className="max-h-48 overflow-y-auto rounded-md border p-2 space-y-2">
+                {categories.map((category) => (
+                  <label
+                    key={category.id}
+                    className="flex items-center space-x-2 text-sm"
+                  >
+                    <input
+                      type="checkbox"
+                      value={category.id}
+                      checked={selectedCategories.includes(category.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedCategories((prev) => [
+                            ...prev,
+                            category.id,
+                          ]);
+                        } else {
+                          setSelectedCategories((prev) =>
+                            prev.filter((id) => id !== category.id)
+                          );
+                        }
+                      }}
+                    />
+                    <span>{category.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
             <Button
               onClick={handleDownload}
               disabled={isGenerating}

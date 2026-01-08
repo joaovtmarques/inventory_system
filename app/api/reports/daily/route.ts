@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 import { authOptions } from "@/lib/auth";
 import { isAdmin } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
@@ -9,36 +12,6 @@ import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import PizZip from "pizzip";
 
-interface EquipmentWithSerials {
-  id: string;
-  name: string;
-  description: string | null;
-  category: {
-    name: string;
-  };
-  amount: number;
-  unitPrice: number;
-  condition: ItemCondition;
-  serialNumbers: {
-    id: string;
-    number: string;
-    status: SerialStatus;
-    condition: ItemCondition;
-    loans: {
-      loan: {
-        id: string;
-        date: Date;
-        mission: string | null;
-        customer: {
-          name: string;
-          rank: string | null;
-          warName: string | null;
-        } | null;
-      };
-    }[];
-  }[];
-}
-
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -46,13 +19,23 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const categoryIds = searchParams.getAll("categories");
+    console.log("CATEGORIES RECEBIDAS:", categoryIds);
+
     // Buscar todos os equipamentos com seus números de série e empréstimos
     const equipments = await prisma.equipment.findMany({
+      where:
+        categoryIds.length > 0
+          ? {
+              categoryId: {
+                in: categoryIds,
+              },
+            }
+          : undefined,
       include: {
         category: {
-          select: {
-            name: true,
-          },
+          select: { name: true },
         },
         serialNumbers: {
           include: {
@@ -72,7 +55,7 @@ export async function GET(request: NextRequest) {
               },
               where: {
                 loan: {
-                  status: "ABERTO", // Apenas cautelas abertas
+                  status: "ABERTO",
                 },
               },
             },
@@ -105,14 +88,6 @@ export async function GET(request: NextRequest) {
 
     // Preparar dados para a segunda tabela (todos os equipamentos)
     const allEquipments = equipments.map((equipment) => {
-      const serialsOnLoan = equipment.serialNumbers.filter(
-        (serial) => serial.status === "CAUTELADO"
-      ).length;
-
-      const availableSerials = equipment.serialNumbers.filter(
-        (serial) => serial.status === "EM_ESTOQUE"
-      ).length;
-
       return {
         material: equipment.name,
         numero_de:

@@ -17,12 +17,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const categoryIds = searchParams.getAll("categories");
+
     const equipments = await prisma.equipment.findMany({
       include: {
         category: {
-          select: {
-            name: true,
-          },
+          select: { name: true },
         },
         serialNumbers: {
           include: {
@@ -62,9 +63,22 @@ export async function GET(request: NextRequest) {
       },
       where: {
         category: {
-          name: {
-            notIn: ["Intendência"],
-          },
+          AND: [
+            {
+              name: {
+                notIn: ["Intendência"],
+              },
+            },
+            ...(categoryIds.length > 0
+              ? [
+                  {
+                    id: {
+                      in: categoryIds,
+                    },
+                  },
+                ]
+              : []),
+          ],
         },
       },
       orderBy: {
